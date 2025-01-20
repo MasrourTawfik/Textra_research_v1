@@ -1,7 +1,7 @@
 Tables and Figures Detection Using Layout Parser
 ================================================
 .. note::
-View the complete implementation in Google Colab: Open Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/tables_figures_detections.ipynb>_
+View the complete implementation in Google Colab: Open Notebook `Tables and Figures Detection Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/tables_figures_detections.ipynb>`_
 
 Introduction
 -------------
