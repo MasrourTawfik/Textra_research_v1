@@ -1,11 +1,13 @@
-Reinforcement Learning Knowledge Graph
-======================================
+Reinforcement Learning Base Knowledge Graph
+============================================
+After preprocessing the book into chapters each in a json file devided by sections, we will start building the Base knowledge graph database. 
+
 .. note::
 View the complete implementation in Google Colab: Open Notebook `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/base_entities_&relationships.ipynb>`_
 
 `Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/neoj4_gdb.ipynb>`_
 
-After preprocessing the book into chapters each in a json file devided by sections, we will start building the Base knowledge graph database. 
+
 
 Prerequisites
 ==============
