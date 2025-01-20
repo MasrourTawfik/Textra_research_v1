@@ -1,6 +1,5 @@
-#######################################
 Reinforcement Learning Knowledge Graph
-#######################################
+======================================
 .. note::
 View the complete implementation in Google Colab: Open Notebook `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/base_entities_&relationships.ipynb>`_
 
