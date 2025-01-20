@@ -1,6 +1,6 @@
 Building the Base Knowledge Graph
 =================================
-documentation\docs\notebooks\processing.ipynb
+
 .. note::
    View the complete implementation in Google Colab: Open Notebook `Book Processing Implementation <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/book_processing.ipynb>`_
 
