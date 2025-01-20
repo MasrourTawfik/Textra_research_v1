@@ -1,59 +1,60 @@
 Reinforcement Learning Base Knowledge Graph
-============================================
-After preprocessing the book into chapters each in a json file devided by sections, we will start building the Base knowledge graph database. 
+=========================================
 
 .. note::
-View the complete implementation in Google Colab: Open Notebook `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/base_entities_&relationships.ipynb>`_
 
-`Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/neoj4_gdb.ipynb>`_
-
-
+    View the complete implementation in Google Colab: 
+    
+    - `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/base_entities_&relationships.ipynb>`_
+    
+    - `Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/neoj4_gdb.ipynb>`_
 
 Prerequisites
-==============
+============
 
-Software Requirements:
-~~~~~~~~~~~~~~~~~~~~~~~
+Software Requirements
+-------------------
 
-Python 3.8+
-Neo4j Community Edition 5.26.0 (or higher)
-
+- Python 3.8+
+- Neo4j Community Edition 5.26.0 (or higher)
 
 Python Dependencies
-~~~~~~~~~~~~~~~~~~~~
-.. code-block:: text
+-----------------
+
+::
+
     pip install neo4j
     pip install openai
     pip install typing
     pip install pathlib
 
-Neo4j Setup:
-------------
+Neo4j Setup
+----------
+
 Installation
-~~~~~~~~~~~~~
-Download Neo4j Community Edition 5.26.0 for Windows
-Extract to C:\Program Files
+~~~~~~~~~~~
+
+Download Neo4j Community Edition 5.26.0 for Windows and extract to C:\\Program Files
 
 Starting Neo4j Server
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-- Open Command Prompt as Administrator
-- Navigate to Neo4j installation directory:
+1. Open Command Prompt as Administrator
+2. Navigate to Neo4j installation directory::
 
-.. code-block:: text
     cd "C:\Program Files\neo4j-community-5.26.0-windows\neo4j-community-5.26.0"
 
-- Start Neo4j server:
+3. Start Neo4j server::
 
-.. code-block:: text
     .\bin\neo4j console
 
-- Access Neo4j Browser interface:
+4. Access Neo4j Browser interface:
 
-Open your web browser and navigate to: http://localhost:7474/browser/
+   Open your web browser and navigate to: http://localhost:7474/browser/
 
 Initial Setup
-~~~~~~~~~~~~~
+~~~~~~~~~~~~
+
 When accessing Neo4j Browser for the first time:
 
 Default connection settings:
@@ -61,31 +62,30 @@ Default connection settings:
 - Connect URL: neo4j://localhost:7687
 - Database: neo4j
 
-
 Default credentials:
 
-Username: neo4j
-You'll be prompted to change the default password
+- Username: neo4j
+- You'll be prompted to change the default password
 
 Knowledge Graph Construction
-============================
+==========================
 
 Entity Extraction Process
---------------------------
-
+------------------------
 
 The initial phase involves extracting reinforcement learning concepts from textbook content. This process is implemented through the ``RLEntityExtractor`` class.
 
 Entity Extraction Flow
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: ../Images/baseent.png
     :align: center
     :alt: Entity Extraction Process
-Entity Extraction Process
+
+    Entity Extraction Process
 
 Core Implementation
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 1. **Initialization**
 
@@ -223,8 +223,7 @@ Complete chapter processing workflow:
             print(f"Error processing chapter file {file_path}: {e}")
             return {}
 
-
-7. **Output Format and Structure**
+6. **Output Format and Structure**
 
 The entity extraction process produces a structured JSON output. Here's an example of extracted entities:
 
@@ -262,30 +261,6 @@ The entity extraction process produces a structured JSON output. Here's an examp
                         "context": "RL as a part of ML"
                     }
                 ]
-            },
-            "markov_decision_process": {
-                "id": "markov_decision_process",
-                "name": "Markov Decision Process",
-                "type": "concept",
-                "definition": "A mathematical framework for modeling decision-making situations, characterized by states, actions, and rewards.",
-                "domains": [
-                    "artificial_intelligence",
-                    "operations_research"
-                ],
-                "properties": [
-                    {
-                        "name": "key_components",
-                        "value": "states, actions, rewards, transitions",
-                        "type": "characteristic"
-                    }
-                ],
-                "source": [
-                    {
-                        "chapter": "1",
-                        "section": "1.3",
-                        "context": "Elements of Reinforcement Learning"
-                    }
-                ]
             }
         }
     }
@@ -293,6 +268,7 @@ The entity extraction process produces a structured JSON output. Here's an examp
 Notes about the output:
 
 1. **Entity Structure**:
+
    - Unique identifier (snake_case)
    - Descriptive name
    - Entity type classification
@@ -302,34 +278,32 @@ Notes about the output:
    - Source references
 
 2. **Source Tracking**:
+
    - Multiple appearances across chapters
    - Section-level granularity
    - Contextual information
    - Hierarchical organization
 
 3. **Domain Classification**:
+
    - Cross-domain relationships
    - Multiple domain associations
    - Domain hierarchy preservation
 
 4. **Property Format**:
+
    - Named characteristics
    - Typed attributes
    - Value descriptions
    - Property categorization
 
 Relationship Extraction Process
---------------------------------
+-----------------------------
 
 The second phase focuses on extracting meaningful relationships between entities using a layered approach, implemented through the ``LayeredRelationshipExtractor`` class.
 
-Layered Architecture
-~~~~~~~~~~~~~~~~~~~~
-
-
-
 Implementation Details
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 1. **Layer Classification**
 
@@ -395,9 +369,7 @@ Relationships are categorized by direction:
 - **same**: Within-layer relationships
 - **across**: Cross-layer non-hierarchical relationships
 
-Common relationship patterns:
-
-.. code-block:: text
+Common relationship patterns::
 
     Foundation → Method: "enables", "provides basis for"
     Method → Algorithm: "is implemented by", "guides"
@@ -500,41 +472,8 @@ Up-Direction Relationship:
       }
     }
 
-Same-Layer Relationship (Application):
-
-.. code-block:: json
-
-    {
-      "source": "reinforcement_learning",
-      "source_layer": "application_layer",
-      "target": "psychology_domain",
-      "target_layer": "application_layer",
-      "type": "relates to",
-      "direction": "same",
-      "evidence": {
-        "text": "Classical Conditioning, Instrumental Conditioning, Dopamine (implied connections to Psychology)",
-        "location": "foundation_layer entities"
-      }
-    }
-
-Up-Direction Complex Relationship:
-
-.. code-block:: json
-
-    {
-      "source": "reinforcement_learning",
-      "source_layer": "application_layer",
-      "target": "markov_decision_process",
-      "target_layer": "foundation_layer",
-      "type": "provides basis for",
-      "direction": "up",
-      "evidence": {
-        "text": "A computational approach to understanding and automating goal-directed learning and decision making.",
-        "location": "definition"
-      }
-    }
-
 These examples demonstrate:
+
 - Different types of layer interactions
 - Various relationship types
 - Evidence-based connections
@@ -542,15 +481,12 @@ These examples demonstrate:
 - Domain-specific associations
 
 Knowledge Graph Building
---------------------------
+----------------------
 
-now that we have entities.json and relationships.json we will build the base knowledge graph in Neo4j, converting the extracted entities and relationships into a queryable graph database.
-
-Graph Building Process
-~~~~~~~~~~~~~~~~~~~~~~
+Now that we have entities.json and relationships.json we will build the base knowledge graph in Neo4j, converting the extracted entities and relationships into a queryable graph database.
 
 Core Implementation
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 1. **Database Connection**
 
@@ -609,83 +545,3 @@ Establishing connections between nodes:
 
     def create_relationships(self, tx, relationships_data):
         relationships = relationships_data.get('relationships', [])
-        
-        for rel in relationships:
-            # Clean relationship type for Neo4j
-            rel_type = rel['type'].upper()\
-                .replace(' ', '_')\
-                .strip('_')
-            
-            query = f"""
-            MATCH (source)
-            WHERE source.id = $source
-            MATCH (target)
-            WHERE target.id = $target
-            MERGE (source)-[r:{rel_type}]->(target)
-            SET r.source_layer = $source_layer
-            SET r.target_layer = $target_layer
-            SET r.direction = $direction
-            """
-
-4. **Index Creation**
-
-Optimizing graph performance with indices:
-
-.. code-block:: python
-
-    def create_indices(self, tx):
-        queries = [
-            "CREATE INDEX concept_type_idx IF NOT EXISTS FOR (n:Concept) ON (n.type)",
-            "CREATE INDEX concept_name_idx IF NOT EXISTS FOR (n:Concept) ON (n.name)",
-            "CREATE INDEX concept_id_idx IF NOT EXISTS FOR (n:Concept) ON (n.id)",
-            "CREATE INDEX domain_id_idx IF NOT EXISTS FOR (n:Domain) ON (n.id)",
-            "CREATE INDEX domain_name_idx IF NOT EXISTS FOR (n:Domain) ON (n.name)"
-        ]
-
-5. **Metadata Addition**
-
-Enriching the graph with analytics:
-
-.. code-block:: python
-
-    def add_metadata(self, tx):
-        queries = [
-            # Degree centrality
-            """
-            MATCH (n)
-            WHERE n:Concept OR n:Domain
-            SET n.degree = COUNT {(n)--()}
-            """,
-            # In-degree
-            """
-            MATCH (n)
-            WHERE n:Concept OR n:Domain
-            SET n.in_degree = COUNT {(n)<--()}
-            """,
-            # Out-degree
-            """
-            MATCH (n)
-            WHERE n:Concept OR n:Domain
-            SET n.out_degree = COUNT {(n)-->()}
-            """
-        ]
-
-Usage Example
-~~~~~~~~~~~~~
-
-Building the complete knowledge graph:
-
-.. code-block:: python
-
-    def main():
-        ENTITIES_FILE = "entities.json"
-        RELATIONSHIPS_FILE = "relationships.json"
-        
-        graph = RLKnowledgeGraph()
-        try:
-            graph.build_graph(ENTITIES_FILE, RELATIONSHIPS_FILE)
-        finally:
-            graph.close()
-
-
-

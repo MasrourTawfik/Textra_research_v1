@@ -1,5 +1,5 @@
-Building the Base Knowledge Graph
-=================================
+Preprocessing Data for Base Knowledge Graph
+============================================
 
 .. note::
    View the complete implementation in Google Colab: Open Notebook `Book Processing Implementation <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/book_processing.ipynb>`_
@@ -103,9 +103,7 @@ improvements made:
 - Escaped special characters in titles
 - Sequential processing using next section as boundary
 
-Final Processing Pipeline
------------------------
-The complete processing flow:
+
 
 1. Initial PDF Text Extraction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
