@@ -1,5 +1,5 @@
 Reinforcement Learning Base Knowledge Graph
-=========================================
+===========================================
 
 .. note::
 
@@ -10,16 +10,16 @@ Reinforcement Learning Base Knowledge Graph
     - `Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/neoj4_gdb.ipynb>`_
 
 Prerequisites
-============
+==============
 
 Software Requirements
--------------------
+---------------------
 
 - Python 3.8+
 - Neo4j Community Edition 5.26.0 (or higher)
 
 Python Dependencies
------------------
+-------------------
 
 ::
 
@@ -29,15 +29,15 @@ Python Dependencies
     pip install pathlib
 
 Neo4j Setup
-----------
+------------
 
 Installation
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 Download Neo4j Community Edition 5.26.0 for Windows and extract to C:\\Program Files
 
 Starting Neo4j Server
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 1. Open Command Prompt as Administrator
 2. Navigate to Neo4j installation directory::
@@ -53,7 +53,7 @@ Starting Neo4j Server
    Open your web browser and navigate to: http://localhost:7474/browser/
 
 Initial Setup
-~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
 When accessing Neo4j Browser for the first time:
 
@@ -68,24 +68,24 @@ Default credentials:
 - You'll be prompted to change the default password
 
 Knowledge Graph Construction
-==========================
+============================
 
 Entity Extraction Process
-------------------------
+--------------------------
 
 The initial phase involves extracting reinforcement learning concepts from textbook content. This process is implemented through the ``RLEntityExtractor`` class.
 
 Entity Extraction Flow
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. figure:: ../Images/baseent.png
+.. figure:: ../Images/base_ent.png
     :align: center
     :alt: Entity Extraction Process
 
     Entity Extraction Process
 
 Core Implementation
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 1. **Initialization**
 
@@ -298,12 +298,12 @@ Notes about the output:
    - Property categorization
 
 Relationship Extraction Process
------------------------------
+-------------------------------
 
 The second phase focuses on extracting meaningful relationships between entities using a layered approach, implemented through the ``LayeredRelationshipExtractor`` class.
 
 Implementation Details
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 1. **Layer Classification**
 
@@ -481,12 +481,12 @@ These examples demonstrate:
 - Domain-specific associations
 
 Knowledge Graph Building
-----------------------
+------------------------
 
 Now that we have entities.json and relationships.json we will build the base knowledge graph in Neo4j, converting the extracted entities and relationships into a queryable graph database.
 
 Core Implementation
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 1. **Database Connection**
 
@@ -545,3 +545,85 @@ Establishing connections between nodes:
 
     def create_relationships(self, tx, relationships_data):
         relationships = relationships_data.get('relationships', [])
+        for rel in relationships:
+            # Clean relationship type for Neo4j
+            rel_type = rel['type'].upper()\
+                .replace(' ', '_')\
+                .strip('_')
+            
+            query = f"""
+            MATCH (source)
+            WHERE source.id = $source
+            MATCH (target)
+            WHERE target.id = $target
+            MERGE (source)-[r:{rel_type}]->(target)
+            SET r.source_layer = $source_layer
+            SET r.target_layer = $target_layer
+            SET r.direction = $direction
+            """
+
+4. **Index Creation**
+
+Optimizing graph performance with indices:
+
+.. code-block:: python
+
+    def create_indices(self, tx):
+        queries = [
+            "CREATE INDEX concept_type_idx IF NOT EXISTS FOR (n:Concept) ON (n.type)",
+            "CREATE INDEX concept_name_idx IF NOT EXISTS FOR (n:Concept) ON (n.name)",
+            "CREATE INDEX concept_id_idx IF NOT EXISTS FOR (n:Concept) ON (n.id)",
+            "CREATE INDEX domain_id_idx IF NOT EXISTS FOR (n:Domain) ON (n.id)",
+            "CREATE INDEX domain_name_idx IF NOT EXISTS FOR (n:Domain) ON (n.name)"
+        ]
+        
+        for query in queries:
+            tx.run(query)
+
+5. **Metadata Addition**
+
+Enriching the graph with analytics:
+
+.. code-block:: python
+
+    def add_metadata(self, tx):
+        queries = [
+            # Degree centrality
+            """
+            MATCH (n)
+            WHERE n:Concept OR n:Domain
+            SET n.degree = COUNT {(n)--()}
+            """,
+            # In-degree
+            """
+            MATCH (n)
+            WHERE n:Concept OR n:Domain
+            SET n.in_degree = COUNT {(n)<--()}
+            """,
+            # Out-degree
+            """
+            MATCH (n)
+            WHERE n:Concept OR n:Domain
+            SET n.out_degree = COUNT {(n)-->()}
+            """
+        ]
+        
+        for query in queries:
+            tx.run(query)
+
+Usage Example
+~~~~~~~~~~~~~
+
+Building the complete knowledge graph:
+
+.. code-block:: python
+
+    def main():
+        ENTITIES_FILE = "entities.json"
+        RELATIONSHIPS_FILE = "relationships.json"
+        
+        graph = RLKnowledgeGraph()
+        try:
+            graph.build_graph(ENTITIES_FILE, RELATIONSHIPS_FILE)
+        finally:
+            graph.close()
