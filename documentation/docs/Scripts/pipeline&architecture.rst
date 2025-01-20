@@ -4,8 +4,8 @@ Pipeline
 The project consists of six main phases as illustrated in the figure below:
 
 .. figure:: ../Images/pipeline.png
-:align: center
-:alt: Pipeline Diagram
+    :align: center
+    :alt: Pipeline Diagram
 Pipeline phases overview
 
 1. Data Collection
