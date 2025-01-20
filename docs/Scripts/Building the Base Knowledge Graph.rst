@@ -2,7 +2,7 @@ Preprocessing Data for Base Knowledge Graph
 ============================================
 
 .. note::
-   View the complete implementation in Google Colab: Open Notebook `Book Processing Implementation <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/book_processing.ipynb>`_
+   View the complete implementation in Google Colab: Open Notebook `Book Processing Implementation <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/docs/notebooks/book_processing.ipynb>`_
 
 
 Initial Approach

@@ -4,7 +4,7 @@ Knowledge Graph Enhancement
 The knowledge graph enhancement process involves expanding the existing knowledge base by extracting additional entities and relationships from RL scientific articles.
 
 .. note::
-View the complete implementation in Google Colab: Open Notebook `Knowledge Graph Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/kg_enhancement.ipynb>`_
+View the complete implementation in Google Colab: Open Notebook `Knowledge Graph Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/docs/notebooks/kg_enhancement.ipynb>`_
 
 
 Enhancement Strategy

@@ -5,9 +5,9 @@ Reinforcement Learning Base Knowledge Graph
 
     View the complete implementation in Google Colab: 
     
-    - `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/base_entities_&relationships.ipynb>`_
+    - `Entities and relationships creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/docs/notebooks/base_entities_&relationships.ipynb>`_
     
-    - `Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/neoj4_gdb.ipynb>`_
+    - `Base knowledge graph creation Notebook <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/docs/notebooks/neoj4_gdb.ipynb>`_
 
 Prerequisites
 ==============

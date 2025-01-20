@@ -2,7 +2,7 @@ Text Extraction
 =================
 
 .. note::
-   View the complete implementation in Google Colab: `Document Layout Analysis and Text Extraction <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/documentation/docs/notebooks/text_extraction.ipynb>`_
+   View the complete implementation in Google Colab: `Document Layout Analysis and Text Extraction <https://colab.research.google.com/github/MasrourTawfik/Textra_research_v1/blob/main/docs/notebooks/text_extraction.ipynb>`_
 
 Process Overview
 --------------
