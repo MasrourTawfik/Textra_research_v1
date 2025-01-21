@@ -90,6 +90,7 @@ Domain Structure Example: IoT Security
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IoT Security provides an exemplary case of domain representation in our knowledge graph:
+
 .. figure:: ../Images/domain.png
    :alt: IoT Security Node's properties
    :align: center
@@ -163,6 +164,7 @@ More Knowledge Graph Node Types with examples
 
 Variant Analysis
 ~~~~~~~~~~~~~~~~
+
 .. figure:: ../Images/variants.png
   :alt: Variant Nodes Query Results
   :width: 100%
@@ -182,7 +184,8 @@ Shows DQN Distillation as a key example:
 - Referenced in paper 1901.08128
 
 Benchmark Exploration
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+
 .. figure:: ../Images/image.png
   :alt: Benchmark Nodes in Knowledge Graph
   :width: 70%
@@ -199,6 +202,7 @@ The Procgen Benchmark example shows:
 
 Algorithm Structure
 ~~~~~~~~~~~~~~~~~~~~
+
 .. figure:: ../Images/algo.png
   :alt: Algorithm Nodes and Relationships
   :width: 100%
@@ -219,6 +223,7 @@ Expected Sarsa example:
 
 Method Analysis
 ~~~~~~~~~~~~~~~~
+
 .. figure:: ../Images/method.png
   :alt: Method Nodes Structure
   :width: 100%
@@ -234,7 +239,8 @@ Reward Function Design example:
 - Referenced in paper 1702.02302
 
 Paper Connections
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+
 .. figure:: ../Images/paper.png
   :alt: Paper Reference Network
   :width: 100%
