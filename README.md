@@ -1,5 +1,5 @@
 # Textra_research_v1
-An intelligent system for analyzing and synthesizing Reinforcement Learning research papers. 
+An intelligent system for analyzing and synthesizing Reinforcement learning research papers. [Documentation](https://textra-research-v1.readthedocs.io/)
 
 ## Prerequisites
 
@@ -31,17 +31,9 @@ python -m pip install -e detectron2
 
 Install all required packages using:
 ```bash
-pip install -r requirements.txt
+pip install -r r.txt
 ```
 
-## Usage
-
-1. Clone this repository
-2. Create a virtual environment
-3. Install requirements:
-```bash
-pip install -r requirements.txt
-```
 
 ## Common Issues
 
