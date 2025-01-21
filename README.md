@@ -1,7 +1,5 @@
 # Textra_research_v1
-An intelligent system for analyzing and synthesizing Reinforcement Learning research papers. 
-
-Documentation available at: [Textra Documentation]([https://docs.example.com](https://textra-research-v1.readthedocs.io/en/latest/index.html))
+An intelligent system for analyzing and synthesizing Reinforcement learning research papers. [Documentation](https://textra-research-v1.readthedocs.io/)
 
 ## Prerequisites
 
