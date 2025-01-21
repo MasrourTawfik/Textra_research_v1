@@ -71,7 +71,7 @@ Interface Components
 Domain and Field Exploration
 -----------------------------
 
-.. figure:: domains.png
+.. figure:: ../Images/domains.png
    :alt: Neo4j Query for Domains and Fields
    :align: center
 
@@ -90,7 +90,7 @@ Domain Structure Example: IoT Security
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IoT Security provides an exemplary case of domain representation in our knowledge graph:
-.. figure:: domain.png
+.. figure:: ../Images/domain.png
    :alt: IoT Security Node's properties
    :align: center
 
@@ -130,7 +130,7 @@ Emerging Applications
 Algorithm Improvements 
 -----------------------
 
-.. figure:: imp.png
+.. figure:: ../Images/imp.png
   :alt: Neo4j Query for Algorithm Improvements
   :align: center
   
@@ -163,7 +163,7 @@ More Knowledge Graph Node Types with examples
 
 Variant Analysis
 ~~~~~~~~~~~~~~~~
-.. figure:: variants.png
+.. figure:: ../Images/variants.png
   :alt: Variant Nodes Query Results
   :width: 100%
   :align: center
@@ -183,7 +183,7 @@ Shows DQN Distillation as a key example:
 
 Benchmark Exploration
 ~~~~~~~~~~~~~~~~~~
-.. figure:: image.png
+.. figure:: ../Images/image.png
   :alt: Benchmark Nodes in Knowledge Graph
   :width: 70%
   :align: center
@@ -199,7 +199,7 @@ The Procgen Benchmark example shows:
 
 Algorithm Structure
 ~~~~~~~~~~~~~~~~~~~~
-.. figure:: algo.png
+.. figure:: ../Images/algo.png
   :alt: Algorithm Nodes and Relationships
   :width: 100%
   :align: center
@@ -219,7 +219,7 @@ Expected Sarsa example:
 
 Method Analysis
 ~~~~~~~~~~~~~~~~
-.. figure:: method.png
+.. figure:: ../Images/method.png
   :alt: Method Nodes Structure
   :width: 100%
   :align: center
@@ -235,7 +235,7 @@ Reward Function Design example:
 
 Paper Connections
 ~~~~~~~~~~~~~~~
-.. figure:: paper.png
+.. figure:: ../Images/paper.png
   :alt: Paper Reference Network
   :width: 100%
   :align: center
