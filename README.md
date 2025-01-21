@@ -1,6 +1,8 @@
 # Textra_research_v1
 An intelligent system for analyzing and synthesizing Reinforcement Learning research papers. 
 
+Documentation available at: `Textra Documentation <https://textra-research-v1.readthedocs.io/en/latest/index.html>`_
+
 ## Prerequisites
 
 - Python 3.8 or higher
