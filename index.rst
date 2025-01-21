@@ -2,7 +2,7 @@ Welcome to Textra-AI-Research's documentation!
 ====================================
 
 .. figure:: docs/Images/LOGO.png
-   :width: 80%
+   :width: 60%
    :align: center
    :alt: Textra-AI-Research's logo
    :name: logo
@@ -22,6 +22,7 @@ Welcome to Textra-AI-Research's documentation!
    docs/Scripts/Building the Base Knowledge Graph.rst
    docs/Scripts/kg_base.rst
    docs/Scripts/kg_enhancement.rst
+   docs/Scripts/navigating the graph.rst
 
 
    
