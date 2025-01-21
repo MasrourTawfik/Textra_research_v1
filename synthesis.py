@@ -1,186 +1,130 @@
-from typing import Dict, List, Optional, Union, Tuple
+from openai import OpenAI
 import json
 from pathlib import Path
-from openai import OpenAI
-from dataclasses import dataclass
+from typing import Dict, List, Optional
 
-@dataclass
-class FigureInfo:
-    path: str
-    description: str
-    caption: str = ""
-
-class SynthesisGenerator:
+class PaperSynthesizer:
     def __init__(self, api_key: str = None):
-        """Initialize with NVIDIA API client."""
         self.client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key=api_key or "ur api key here"
+            api_key=api_key or "YOUR API KEY HERE"
         )
-        self.toc = None
-        self.content = None
-        self.figures = {}
-        self.synthesis_data = {"sections": []}
 
-    def load_files(self, toc_path: str, content_path: str):
-        """Load TOC and content files."""
-        with open(toc_path, 'r', encoding='utf-8') as f:
-            self.toc = json.load(f)
-        with open(content_path, 'r', encoding='utf-8') as f:
-            self.content = json.load(f)
-        self._extract_figures()
+    def _create_section_prompt(self, section: Dict, content: str, visuals: List[Dict]) -> str:
+        """Create prompt for synthesizing a section."""
+        return f'''Write a concise section for a research paper synthesis following this plan:
 
-    def _extract_figures(self):
-        """Extract figures and their descriptions from content."""
-        for page in self.content.get("pages", []):
-            for figure in page.get("figures", []):
-                if figure.get("file_path"):
-                    self.figures[figure["file_path"]] = FigureInfo(
-                        path=figure["file_path"],
-                        description=figure.get("description", ""),
-                        caption=figure.get("caption", "")
-                    )
+Title: {section["title"]}
+Key Points: {json.dumps(section["content_plan"]["key_points"])}
+Main Message: {section["content_plan"]["main_message"]}
 
-    def _create_section_prompt(self, section: Dict, content: str) -> str:
-        """Create prompt for LLaMA to generate section content."""
-        return f"""Generate a detailed synthesis for the following section of a research paper:
+Content: {content[:3000]}
 
-Section Title: {section['title']}
+Visuals to reference:
+{json.dumps(visuals, indent=2)}
 
-Key Points to Cover:
-{json.dumps(section['key_points'], indent=2)}
+IMPORTANT: Be concise. Focus on key points. Integrate visuals naturally.
+Return ONLY the section text in markdown format with appropriate headings and figure references.'''
 
-Content to Include:
-{json.dumps(section['content_to_include'], indent=2)}
+    def _find_visuals(self, paths: List[str], media_analysis: List[Dict]) -> List[Dict]:
+        """Find visual details from media analysis."""
+        return [
+            media for media in media_analysis 
+            if media["path"] in paths
+        ]
 
-Relevant Paper Content:
-{content}
-
-Generate a comprehensive synthesis that:
-1. Covers all key points listed
-2. Integrates the relevant content provided
-3. Maintains academic writing style
-4. Is well-structured with clear paragraphs
-5. References any relevant figures when appropriate ({', '.join(section['relevant_visuals'])})
-
-Return the synthesis in markdown format with appropriate headers and formatting."""
-
-    def _extract_content_for_section(self, section: Dict) -> str:
-        """Extract relevant content from paper for a given section."""
-        relevant_content = []
-        keywords = set([
-            *section["title"].lower().split(),
-            *[point.lower() for point in section["key_points"]],
-            *[content.lower() for content in section["content_to_include"]]
-        ])
-        
-        for page in self.content.get("pages", []):
-            text = page.get("text", "")
-            paragraphs = text.split("\n\n")
-            
-            for paragraph in paragraphs:
-                if any(keyword in paragraph.lower() for keyword in keywords):
-                    relevant_content.append(paragraph)
-        
-        return "\n\n".join(relevant_content)
-
-    def generate_section_content(self, section: Dict) -> Tuple[str, List[str]]:
-        """Generate content for a single section using LLaMA."""
-        content = self._extract_content_for_section(section)
-        prompt = self._create_section_prompt(section, content)
-
+    def generate_section(self, section: Dict, content: str, media_analysis: List[Dict]) -> str:
+        """Generate a single section of the synthesis."""
         try:
-            response = self.client.chat.completions.create(
-                model="nvidia/llama-3.1-nemotron-70b-instruct",
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }],
-                temperature=0.3,
-                max_tokens=2048
+            # Get relevant visuals
+            visuals = self._find_visuals(
+                [v["media_path"] for v in section["content_plan"]["visual_elements"]], 
+                media_analysis
             )
             
-            # Add to synthesis data
-            self.synthesis_data["sections"].append({
-                "title": section["title"],
-                "content": response.choices[0].message.content,
-                "relevant_visuals": section["relevant_visuals"]
-            })
+            # Generate content
+            prompt = self._create_section_prompt(section, content, visuals)
+            response = self.client.chat.completions.create(
+                model="nvidia/llama-3.1-nemotron-70b-instruct",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=1024
+            )
             
-            return response.choices[0].message.content, section["relevant_visuals"]
+            return response.choices[0].message.content.strip()
+            
         except Exception as e:
-            print(f"Error generating content for section {section['title']}: {e}")
-            error_content = f"## {section['title']}\nError generating content."
-            self.synthesis_data["sections"].append({
-                "title": section["title"],
-                "content": error_content,
-                "relevant_visuals": section["relevant_visuals"]
-            })
-            return error_content, []
+            print(f"Error generating section {section['title']}: {str(e)}")
+            return f"## {section['title']}\nError generating content."
 
-    def generate_full_synthesis(self) -> str:
-        """Generate complete synthesis following TOC structure."""
-        if not self.toc or not self.content:
-            raise ValueError("Please load files first using load_files()")
-
-        synthesis = "# Article Synthesis\n\n"
-        self.synthesis_data = {"sections": []}
+    def synthesize_paper(self, plan: Dict, paper_content: str) -> str:
+        """Generate complete paper synthesis."""
+        synthesis = []
         
-        for section in self.toc["sections"]:
-            content, _ = self.generate_section_content(section)
-            synthesis += content + "\n\n"
+        # Add metadata section
+        metadata = plan["metadata"]
+        # Create metadata section
+        title = f"# {metadata['title']}\n\n"
+        objective = f"**Main Objective**: {metadata['main_objective']}\n\n"
+        contributions = "**Key Contributions**:\n" + "\n".join(f"- {contrib}" for contrib in metadata["key_contributions"])
+        
+        synthesis.append(f"{title}{objective}{contributions}")
+
+        # Generate each section in sequence
+        sections = {s["section_id"]: s for s in plan["synthesis_structure"]["sections"]}
+        for section_id in plan["synthesis_structure"]["flow"]["section_sequence"]:
+            section = sections[section_id]
+            content = self.generate_section(
+                section,
+                paper_content,
+                plan.get("media_analysis", [])
+            )
+            synthesis.append(content)
             
+            # Add transition if available
+            if transition := plan["synthesis_structure"]["flow"]["transitions"].get(section_id):
+                synthesis.append(f"\n{transition}\n")
+
+        return "\n\n".join(synthesis)
+
+def create_synthesis(plan_path: str, paper_path: str, output_path: Optional[str] = None) -> Optional[str]:
+    """Create synthesis from plan and paper content."""
+    try:
+        # Load files
+        with open(plan_path, 'r', encoding='utf-8') as f:
+            plan_data = json.load(f)["paper_analysis"]["synthesis_plan"]
+        
+        with open(paper_path, 'r', encoding='utf-8') as f:
+            paper_data = json.load(f)
+            paper_content = " ".join(
+                page.get("text", "") 
+                for page in paper_data.get("pages", [])
+            )
+
+        # Generate synthesis
+        synthesizer = PaperSynthesizer()
+        synthesis = synthesizer.synthesize_paper(plan_data, paper_content)
+
+        # Save if needed
+        if output_path:
+            output_path = Path(output_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(synthesis)
+
         return synthesis
 
-    def save_synthesis_json(self, output_path: str = "results/synthesis.json"):
-        """Save synthesis data to JSON file."""
-        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(self.synthesis_data, f, indent=2)
+    except Exception as e:
+        print(f"Error creating synthesis: {str(e)}")
+        return None
 
-    def get_figure(self, figure_path: str) -> Optional[FigureInfo]:
-        """Retrieve figure information by path."""
-        return self.figures.get(figure_path)
-
-    def get_relevant_figures(self, section_title: str) -> List[str]:
-        """Get relevant figure paths for a section."""
-        section = next((s for s in self.toc["sections"] if s["title"] == section_title), None)
-        if section:
-            return section["relevant_visuals"]
-        return []
-
-    def read_image_file(self, file_path: str) -> Optional[bytes]:
-        """Read image file and return bytes."""
-        try:
-            with open(file_path, 'rb') as f:
-                return f.read()
-        except Exception as e:
-            print(f"Error reading image file {file_path}: {e}")
-            return None
-
-def create_synthesis(toc_path: str, content_path: str, api_key: str = None) -> Tuple[str, Dict[str, FigureInfo]]:
-    """Create synthesis from TOC and content files."""
-    generator = SynthesisGenerator(api_key)
-    generator.load_files(toc_path, content_path)
-    synthesis = generator.generate_full_synthesis()
-    
-    # Save synthesis to JSON
-    generator.save_synthesis_json()
-    
-    return synthesis, generator.figures
-
-# Example usage
 if __name__ == "__main__":
-    synthesis, figures = create_synthesis(
-        toc_path="results/synthesis_toc.json",
-        content_path="results/results_with_descriptions.json"
+    synthesis = create_synthesis(
+        "results/synthesis_plan.json",
+        "results/results_with_descriptions.json",
+        "results/synthesis.md"
     )
-    print(synthesis)
     
-    # Print available figures
-    print("\nAvailable Figures:")
-    for path, info in figures.items():
-        print(f"\nPath: {path}")
-        print(f"Description: {info.description}")
-        if info.caption:
-            print(f"Caption: {info.caption}")
+    if synthesis:
+        print("\nSynthesis complete!")
+        print("Output saved to results/synthesis.md")

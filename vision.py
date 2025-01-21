@@ -1,178 +1,236 @@
 import json
-from enum import Enum
-from typing import Dict, List, Optional
+import requests
+import base64
+from pathlib import Path
+import time
+import re
 
-class LearningStyle(Enum):
-    VISUAL = "visual"
-    AUDITORY = "auditory"
-    KINESTHETIC = "kinesthetic"
-    READING_WRITING = "reading_writing"
+class VisionAnalyzer:
+    def __init__(self, api_key):
+        """Initialize the vision analyzer with API key"""
+        self.api_key = api_key
+        self.invoke_url = "https://integrate.api.nvidia.com/v1/chat/completions"
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json"
+        }
 
-class ContentGenerator:
-    def __init__(self, learning_style: LearningStyle):
-        self.learning_style = learning_style
-        
-    def _analyze_media_importance(self, item: Dict) -> float:
-        """Calculate importance score for media items."""
-        score = 0.0
-        description = item.get('description', '').lower()
-        context = item.get('reference_text', '').lower()
-        
-        key_terms = ['key', 'main', 'significant', 'demonstrates', 'result']
-        score += sum(0.2 for term in key_terms if term in description or term in context)
-        
-        if item.get('context_found', False):
-            score += 0.3
-            
-        return min(score, 1.0)
-
-    def _should_display_media(self) -> bool:
-        """Determine if media should be displayed based on learning style."""
-        return self.learning_style in [
-            LearningStyle.VISUAL,
-            LearningStyle.KINESTHETIC
+    def find_media_reference(self, text, media_type, page_num):
+        """Find reference to a specific figure/table in text"""
+        # Broader patterns for finding references
+        patterns = [
+            f"{media_type}\.?\s*{page_num}",           # Fig. 1 or Table 1
+            f"{media_type}\.?\s*\[{page_num}\]",       # Fig. [1] or Table [1]
+            f"{media_type}\.?\s*\({page_num}\)",       # Fig. (1) or Table (1)
+            f"(?:see|in)\s+{media_type}\.?\s*{page_num}",  # see Fig. 1 or in Table 1
         ]
-
-    def generate_toc(self, vision_output: Dict) -> Dict:
-        """Generate table of contents based on vision analysis and learning style."""
-        # Extract and analyze media items
-        media_items = []
-        for page in vision_output['pages']:
-            for fig in page.get('figures', []):
-                if 'description' in fig:
-                    media_items.append({
-                        'type': 'figure',
-                        'description': fig['description'],
-                        'context': fig.get('reference_text', ''),
-                        'importance': self._analyze_media_importance(fig)
-                    })
-            for table in page.get('tables', []):
-                if 'description' in table:
-                    media_items.append({
-                        'type': 'table',
-                        'description': table['description'],
-                        'context': table.get('reference_text', ''),
-                        'importance': self._analyze_media_importance(table)
-                    })
-
-        # Sort media items by importance
-        important_items = sorted(media_items, key=lambda x: x['importance'], reverse=True)
-
-        # Generate sections based on learning style
-        sections = []
-        display_media = self._should_display_media()
         
-        if self.learning_style == LearningStyle.VISUAL:
-            sections = [
-                {
-                    "title": "Visual Overview and Key Concepts",
-                    "content": "Start with main diagrams and charts to build foundational understanding. Focus on visual relationships between components.",
-                    "display_media": True,
-                    "order": 1
-                },
-                {
-                    "title": "Detailed Visual Analysis",
-                    "content": "Deep dive into specific figures and their interconnections. Use visual comparisons to highlight key differences.",
-                    "display_media": True,
-                    "order": 2
-                },
-                {
-                    "title": "Visual Summary and Integration",
-                    "content": "Connect all visual elements to form comprehensive understanding. Create visual mind maps of relationships.",
-                    "display_media": True,
-                    "order": 3
-                }
-            ]
-            
-        elif self.learning_style == LearningStyle.AUDITORY:
-            sections = [
-                {
-                    "title": "Conceptual Introduction",
-                    "content": "Verbal explanation of key concepts and their relationships. Focus on clear, descriptive language.",
-                    "display_media": False,
-                    "order": 1
-                },
-                {
-                    "title": "Detailed Explanations",
-                    "content": "In-depth verbal descriptions of methodologies and findings. Use analogies and verbal examples.",
-                    "display_media": False,
-                    "order": 2
-                },
-                {
-                    "title": "Verbal Analysis and Discussion",
-                    "content": "Discussion-style exploration of implications and connections. Emphasis on verbal reasoning.",
-                    "display_media": False,
-                    "order": 3
-                }
-            ]
-            
-        elif self.learning_style == LearningStyle.KINESTHETIC:
-            sections = [
-                {
-                    "title": "Hands-on Introduction",
-                    "content": "Interactive exploration of key concepts through practical examples and exercises.",
-                    "display_media": True,
-                    "order": 1
-                },
-                {
-                    "title": "Applied Practice",
-                    "content": "Step-by-step practical application of concepts. Include interactive exercises and real-world examples.",
-                    "display_media": True,
-                    "order": 2
-                },
-                {
-                    "title": "Practical Integration Project",
-                    "content": "Hands-on project combining all learned concepts. Focus on practical implementation.",
-                    "display_media": True,
-                    "order": 3
-                }
-            ]
-            
-        elif self.learning_style == LearningStyle.READING_WRITING:
-            sections = [
-                {
-                    "title": "Written Overview",
-                    "content": "Comprehensive written introduction to key concepts and methodologies.",
-                    "display_media": False,
-                    "order": 1
-                },
-                {
-                    "title": "Detailed Text Analysis",
-                    "content": "In-depth written explanations and analysis of each component.",
-                    "display_media": False,
-                    "order": 2
-                },
-                {
-                    "title": "Written Integration and Summary",
-                    "content": "Written synthesis of concepts and their relationships. Include detailed notes and summaries.",
-                    "display_media": False,
-                    "order": 3
-                }
-            ]
+        # Get all matches from all patterns
+        contexts = []
+        for pattern in patterns:
+            matches = list(re.finditer(pattern, text, re.IGNORECASE))
+            for match in matches:
+                # Get wider context around match
+                start = max(0, match.start() - 1000)
+                end = min(len(text), match.end() + 1000)
+                
+                # Find sentence boundaries
+                context_text = text[start:end]
+                sentences = re.split(r'(?<=[.!?])\s+', context_text)
+                
+                # Get sentences containing and surrounding the match
+                match_pos = match.start() - start
+                for i, sentence in enumerate(sentences):
+                    if match_pos <= len(sentence):
+                        # Get surrounding sentences
+                        start_idx = max(0, i - 2)
+                        end_idx = min(len(sentences), i + 3)
+                        context = ' '.join(sentences[start_idx:end_idx])
+                        contexts.append(context)
+                        break
+                    match_pos -= len(sentence) + 1
+                    
+        return ' '.join(contexts) if contexts else text
 
-        return {"sections": sections}
+    def get_page_context(self, pages, current_page_num):
+        """Get context from current and adjacent pages"""
+        context_text = []
+        
+        # Get text from previous, current, and next page
+        for page in pages:
+            if abs(page['page_num'] - current_page_num) <= 1:  # Include adjacent pages
+                if 'text' in page:
+                    context_text.append(page['text'])
+                    
+        return '\n'.join(context_text)
 
-def create_learning_toc(vision_output: Dict, learning_style: str) -> Dict:
-    """Helper function to create table of contents from vision analysis output."""
-    try:
-        # Convert learning style string to enum
-        style = LearningStyle(learning_style.lower())
-        
-        # Create generator and generate TOC
-        generator = ContentGenerator(style)
-        return generator.generate_toc(vision_output)
-        
-    except Exception as e:
-        print(f"Error generating table of contents: {e}")
-        return None
+    def analyze_image(self, image_path, pages, current_page, media_type, page_num):
+        """Analyze a single image with document context"""
+        try:
+            # Read and encode image
+            with open(image_path, "rb") as f:
+                image_b64 = base64.b64encode(f.read()).decode()
+
+            # Check size limit
+            if len(image_b64) >= 180_000:
+                print(f"Warning: Image {image_path} is too large (>180KB)")
+                return None
+
+            # Get context but limit it to ~500 characters to avoid token limit
+            page_context = self.get_page_context(pages, current_page['page_num'])
+            reference_context = self.find_media_reference(page_context, media_type, page_num)
+            truncated_context = reference_context[:500] + "..." if len(reference_context) > 500 else reference_context
+            
+            # Prepare different prompts for figures and tables
+            if media_type.lower() == 'figure':
+                prompt = f"""Based on this figure and the surrounding text, provide a concise analysis:
+
+    Context: {truncated_context}
+
+    1. Contextual Placement:
+    - How this figure relates to the text passage
+    - Its role in the current section
+
+    2. Technical Analysis:
+    - Main elements and structure
+    - Key metrics or patterns shown
+    - Mathematical or algorithmic aspects
+
+    3. Research Impact:
+    - Main findings illustrated
+    - Contribution to methodology/results
+
+    Please be specific and technical in your analysis."""
+
+            else:  # Table
+                prompt = f"""Based on this table and the surrounding text, provide a concise analysis:
+
+    Context: {truncated_context}
+
+    1. Data Organization:
+    - Structure and content overview
+    - Key metrics presented
+
+    2. Critical Findings:
+    - Notable patterns or values
+    - Statistical significance
+
+    3. Research Value:
+    - Support for paper's claims
+    - Methodological insights
+
+    Please focus on key data points and findings."""
+
+            payload = {
+                "model": 'microsoft/phi-3.5-vision-instruct',
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f'{prompt} <img src="data:image/jpeg;base64,{image_b64}" />'
+                    }
+                ],
+                "max_tokens": 512,
+                "temperature": 0.20,
+                "top_p": 0.70,
+                "stream": False
+            }
+
+            response = requests.post(self.invoke_url, headers=self.headers, json=payload)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'choices' in result and len(result['choices']) > 0:
+                    return {
+                        'description': result['choices'][0]['message']['content'],
+                        'context_used': True,
+                        'reference_text': truncated_context
+                    }
+            
+            print(f"Error analyzing image {image_path}: {response.text}")
+            return None
+
+        except Exception as e:
+            print(f"Error processing image {image_path}: {e}")
+            return None
+    def process_results_file(self, results_path):
+        """Process a results.json file and add descriptions to all images"""
+        try:
+            # Load results file
+            with open(results_path, 'r', encoding='utf-8') as f:
+                results = json.load(f)
+
+            print(f"Processing results from: {results_path}")
+            
+            # Process each page
+            for page in results['pages']:
+                page_num = page['page_num']
+                print(f"\nProcessing page {page_num}")
+
+                # Process tables
+                for i, table in enumerate(page['tables'], 1):
+                    if 'file_path' in table:
+                        print(f"Analyzing table {i} on page {page_num}")
+                        analysis = self.analyze_image(
+                            table['file_path'],
+                            results['pages'],  # Pass all pages for context
+                            page,
+                            "Table",
+                            i
+                        )
+                        if analysis:
+                            table['description'] = analysis['description']
+                            table['context_found'] = analysis['context_used']
+                            table['reference_text'] = analysis['reference_text']
+                            time.sleep(1)  # Rate limiting
+
+                # Process figures
+                for i, figure in enumerate(page['figures'], 1):
+                    if 'file_path' in figure:
+                        print(f"Analyzing figure {i} on page {page_num}")
+                        analysis = self.analyze_image(
+                            figure['file_path'],
+                            results['pages'],  # Pass all pages for context
+                            page,
+                            "Figure",
+                            i
+                        )
+                        if analysis:
+                            figure['description'] = analysis['description']
+                            figure['context_found'] = analysis['context_used']
+                            figure['reference_text'] = analysis['reference_text']
+                            time.sleep(1)  # Rate limiting
+
+            # Save updated results
+            output_path = Path(results_path).parent / 'results_with_descriptions.json'
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(results, f, indent=2, ensure_ascii=False)
+
+            print(f"\nAnalysis complete! Results saved to: {output_path}")
+            return results
+
+        except Exception as e:
+            print(f"Error processing results file: {e}")
+            return None
+
+
+def analyze_paper_media(results_path, api_key):
+    """Helper function to analyze media in a paper's results"""
+    analyzer = VisionAnalyzer(api_key)
+    return analyzer.process_results_file(results_path)
 
 if __name__ == "__main__":
     # Example usage
-    with open("results_with_descriptions.json", "r") as f:
-        vision_output = json.load(f)
+    API_KEY = "YOUR API KEY HERE"
+    results_path = "results/results.json"
     
-    learning_style = "visual" 
-    toc = create_learning_toc(vision_output, learning_style)
-    
-    if toc:
-        print(json.dumps(toc, indent=2))
+    results = analyze_paper_media(results_path, API_KEY)
+    if results:
+        print("\nSummary:")
+        total_with_context = 0
+        for page in results['pages']:
+            print(f"\nPage {page['page_num']}:")
+            tables_with_context = len([t for t in page['tables'] if t.get('context_found')])
+            figures_with_context = len([f for f in page['figures'] if f.get('context_found')])
+            print(f"Tables analyzed: {len(page['tables'])} ({tables_with_context} with context)")
+            print(f"Figures analyzed: {len(page['figures'])} ({figures_with_context} with context)")
+            total_with_context += tables_with_context + figures_with_context

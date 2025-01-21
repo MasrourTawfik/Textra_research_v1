@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # Configure Tesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe' 
 custom_config = r'--psm 1'
 
 def create_mask_for_regions(image_size, regions):
@@ -301,10 +301,4 @@ def process_pdf(pdf_path, output_folder=None, table_threshold=0.1, figure_thresh
         print(f"Error processing PDF: {str(e)}")
         return None
 
-if __name__ == "__main__":
-    pdf_path = r"scientific articles with metadata\1702.02302.pdf"
-    result = process_pdf(pdf_path)
-    
-    if result:
-        print("\nProcessing completed successfully!")
-        print(f"Results saved in: {Path('results').absolute()}")
+
