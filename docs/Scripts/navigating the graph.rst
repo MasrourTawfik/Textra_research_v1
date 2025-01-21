@@ -37,23 +37,29 @@ Interface Components
 ~~~~~~~~~~~~~~~~~~~~
 
 1. NEO4J Query Bar
+
    * Where Cypher queries are entered to interact with the graph database
+
    * Currently showing "MATCH(n) RETURN n" which displays all nodes
 
 2. Export Tools
+
    * Provides export functionality in multiple formats:
+
      - JSON
      - PNG
      - SVG
      - CSV
 
 3. Left Sidebar Tools
+
    * Graph: Visual graph view selector
    * Properties View: Displays detailed node and relationship properties in JSON format
    * Text: Text view option
    * Code: Code view selector
 
 4. Node Labels Panel
+
    * Displays all node types with their respective counts
    * Color-coded categories including:
      - Concept: 227 nodes
@@ -62,6 +68,7 @@ Interface Components
    * Contains 15 distinct node types
 
 5. Relationship Types Panel
+
    * Shows relationship varieties between nodes
    * Displays 50 out of 245 total relationship types
    * Key relationships include:
@@ -96,6 +103,8 @@ IoT Security provides an exemplary case of domain representation in our knowledg
    :align: center
 
    IoT Security Node's properties
+
+   
 * **Definition**: The practice of protecting Internet of Things (IoT) devices, networks, and data from unauthorized access, use, disclosure, disruption, modification, or destruction.
 * **Connectivity**: 
   - Total connections (degree): 10
@@ -117,7 +126,7 @@ Technical Domains
 * **Multi-Echelon Supply Chain**
 
 Scientific Fields
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 * **Psychology**: Intersection of reinforcement learning with cognitive science
 * **Explainable AI**
 * **Probabilistic Model Checking**
@@ -195,10 +204,15 @@ Benchmark Exploration
   Procgen Benchmark node and its connections
 
 The Procgen Benchmark example shows:
+
 - Purpose: Evaluates RL agents' generalization
+
 - Layer: Implementation
+
 - Connectivity: 9 total connections
+
 - Key contribution: Standardized evaluation framework
+
 - Scientific backing: Paper 2102.10330
 
 Algorithm Structure
