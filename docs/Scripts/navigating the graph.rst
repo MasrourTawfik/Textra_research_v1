@@ -173,6 +173,7 @@ Variant Analysis
   Graph visualization of algorithm variants and their relationships
 
 Querying variants using:
+
 .. code-block:: cypher
 
   MATCH (n) WHERE n.type='variant' RETURN n ORDER BY n.type, n.name
@@ -211,6 +212,7 @@ Algorithm Structure
   Network of algorithm nodes showing Expected Sarsa and related algorithms
 
 Query reveals algorithm relationships:
+
 .. code-block:: cypher
 
   MATCH (n) WHERE n.type='algorithm' RETURN n ORDER BY n.type, n.name
