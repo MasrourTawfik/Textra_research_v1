@@ -107,7 +107,7 @@ IoT Security provides an exemplary case of domain representation in our knowledg
   - Scientific backing: Referenced in paper 2102.07247
 
 Key Application Domains
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Technical Domains
 ^^^^^^^^^^^^^^^^^^
@@ -204,6 +204,14 @@ The Procgen Benchmark example shows:
 Algorithm Structure
 ~~~~~~~~~~~~~~~~~~~~
 
+.. figure:: ../Images/graph (2).png
+  :alt: Algorithm Nodes and Relationships
+  :width: 100%
+  :align: center
+
+  Network of algorithm nodes
+
+
 .. figure:: ../Images/algo.png
   :alt: Algorithm Nodes and Relationships
   :width: 100%
@@ -251,7 +259,11 @@ Paper Connections
   Paper node 1702.03118 and its citation network
 
 Example shows:
+
 - Paper ID: 1702.03118
+
 - Multiple REFERENCED_IN relationships
+
 - Connects different concepts (Explainable AI, Spoken Dialogue Systems)
+
 - Shows how papers bridge different domains
