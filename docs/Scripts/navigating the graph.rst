@@ -204,7 +204,7 @@ The Procgen Benchmark example shows:
 Algorithm Structure
 ~~~~~~~~~~~~~~~~~~~~
 
-.. figure:: ../Images/graph (2).png
+.. figure:: ../Images/graphalgo.png
   :alt: Algorithm Nodes and Relationships
   :width: 100%
   :align: center
