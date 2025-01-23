@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # Configure Tesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe' 
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 custom_config = r'--psm 1'
 
 def create_mask_for_regions(image_size, regions):

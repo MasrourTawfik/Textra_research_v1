@@ -7,12 +7,79 @@ import shutil
 from datetime import datetime
 import base64
 from PIL import Image
+import re
 
 from ocr import process_pdf
 from vision import analyze_paper_media
 from processor import process_research_paper
 from synthesis import create_synthesis
+from knowledge_graph import process_knowledge_graph
 
+
+def display_knowledge_graph(graph_results, session_path=None):
+    """Display knowledge graph results in Streamlit."""
+    import matplotlib.pyplot as plt
+    
+    if not graph_results:
+        st.error("No graph results to display")
+        return
+
+    # Display graph visualization first
+    if graph_results.get('figure'):
+        try:
+            fig = graph_results['figure']
+            plt.figure(fig.number)  # Activate the figure
+            st.pyplot(fig, clear_figure=True)
+        except Exception as e:
+            st.error(f"Error displaying graph: {e}")
+            # Try alternate display method
+            if session_path:
+                try:
+                    st.image(f"{session_path}/knowledge_graph.png")
+                except Exception as e2:
+                    st.error(f"Error displaying saved graph image: {e2}")
+
+    # Display entities
+    if 'entities' in graph_results:
+        st.success(f"Found {len(graph_results['entities'])} concepts")
+        with st.expander("📋 View Extracted Concepts"):
+            st.json(graph_results['entities'])
+    
+    # Display relationships
+    if 'relationships' in graph_results and 'relationships' in graph_results['relationships']:
+        st.success(f"Found {len(graph_results['relationships']['relationships'])} relationships")
+        with st.expander("🔗 View Relationships"):
+            st.json(graph_results['relationships'])
+    
+    # Add download buttons
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(
+            "📥 Download Concepts (JSON)",
+            data=json.dumps(graph_results['entities'], indent=2),
+            file_name="concepts.json",
+            mime="application/json",
+            key="download_concepts"
+        )
+    with col2:
+        st.download_button(
+            "📥 Download Relationships (JSON)",
+            data=json.dumps(graph_results['relationships'], indent=2),
+            file_name="relationships.json",
+            mime="application/json",
+            key="download_relationships"
+        )
+            
+def process_and_display_graph(text: str, paper_title: str, session_path: str):
+    """Process and display knowledge graph."""
+    with st.spinner("Generating knowledge graph..."):
+        graph_results = process_knowledge_graph(text, paper_title, session_path)
+        if graph_results:
+            display_knowledge_graph(graph_results, session_path)
+        else:
+            st.error("Could not generate knowledge graph")           
+            
+            
 class SessionManager:
     def __init__(self):
         self.base_path = Path("sessions")
@@ -48,54 +115,122 @@ class FigureManager:
         """Get list of essential figures with their metadata."""
         try:
             media_analysis = self.process_results.get('paper_analysis', {}).get('media_analysis', [])
-            return [
-                {
-                    'path': item['path'],
-                    'type': item['type'],
-                    'description': item.get('content', {}).get('description', ''),
-                    'context': item.get('content', {}).get('reference_text', ''),
-                    'analysis': item.get('analysis', {})
-                }
-                for item in media_analysis
-                if item.get('analysis', {}).get('is_essential', False)
-            ]
+            essential_figures = []
+            
+            for item in media_analysis:
+                if item.get('analysis', {}).get('is_essential', False):
+                    # Extract figure number from path if possible
+                    path = item['path']
+                    figure_num = None
+                    match = re.search(r'figure_(\d+)', path.lower())
+                    if match:
+                        figure_num = match.group(1)
+                    
+                    essential_figures.append({
+                        'path': path,
+                        'type': item['type'],
+                        'number': figure_num,
+                        'description': item.get('content', {}).get('description', ''),
+                        'context': item.get('content', {}).get('reference_text', ''),
+                        'analysis': item.get('analysis', {})
+                    })
+            
+            return essential_figures
         except Exception as e:
             print(f"Error getting essential figures: {e}")
             return []
 
 def display_synthesis_with_figures(synthesis_text: str, essential_figures: list):
     """Display synthesis with figures in appropriate positions."""
-    # Split synthesis into sections
-    sections = synthesis_text.split('\n\n')
+    # Compile regex patterns for figure references
+    figure_patterns = [
+        r'\*\*\(Reference:[^)]+\)\*\*',  # (Reference: arXiv:...)
+        r'\[Insert Figure \d+ reference here[^]]*\]',  # [Insert Figure X reference here]
+        r'Figure \d+',  # Simple Figure X reference
+        r'Fig\. \d+',  # Fig. X reference
+        r'\[Figure:[^\]]+\]',  # [Figure: Description]
+        r'\(\[Figure:[^\]]+\]\)'  # ([Figure: Description])
+    ]
     
-    for section in sections:
-        # Display section text
-        st.markdown(section)
+    # Split synthesis into sections but preserve figure references
+    sections = []
+    current_section = []
+    
+    for line in synthesis_text.split('\n'):
+        # Check if this line contains a figure reference
+        has_figure_ref = any(re.search(pattern, line, re.IGNORECASE) for pattern in figure_patterns)
         
-        # Check if any figures should be displayed here
-        for figure in essential_figures:
-            # Check if figure's path is mentioned in this section
-            if figure['path'] in section:
-                try:
-                    # Create columns for figure and caption
-                    col1, col2 = st.columns([2, 1])
-                    
-                    with col1:
-                        # Display figure
-                        image = Image.open(figure['path'])
-                        st.image(image, caption=f"Figure: {Path(figure['path']).stem}")
-                    
-                    with col2:
-                        # Display analysis
-                        st.markdown("**Analysis**")
-                        st.markdown(figure['analysis']['understanding_role'])
+        if has_figure_ref:
+            # Add accumulated section if it exists
+            if current_section:
+                sections.append('\n'.join(current_section))
+                current_section = []
+            # Add figure reference as its own section
+            sections.append(line)
+        else:
+            current_section.append(line)
+    
+    # Add final section if it exists
+    if current_section:
+        sections.append('\n'.join(current_section))
+
+    # Display sections with figures
+    for section in sections:
+        # Check if this section is a figure reference
+        is_figure_ref = any(re.search(pattern, section, re.IGNORECASE) for pattern in figure_patterns)
+        
+        if is_figure_ref:
+            # Try to find corresponding figure
+            for figure in essential_figures:
+                # Extract figure number if present in the reference
+                figure_num_match = re.search(r'Figure (\d+)|Fig\. (\d+)', section, re.IGNORECASE)
+                found_figure = False
+                
+                if figure_num_match:
+                    figure_num = figure_num_match.group(1) or figure_num_match.group(2)
+                    if f"figure_{figure_num}" in figure['path'].lower():
+                        found_figure = True
+                else:
+                    # Try to match by description
+                    description_match = re.search(r'\[Figure:\s*([^\]]+)\]', section, re.IGNORECASE)
+                    if description_match:
+                        desc = description_match.group(1).strip().lower()
+                        # Try to match by keywords in the description
+                        if any(keyword in desc and keyword in figure['path'].lower() 
+                              for keyword in ["architecture", "diagram", "flowchart", "model", "network"]):
+                            found_figure = True
+                
+                if found_figure:
+                    try:
+                        # Create columns for figure and analysis
+                        col1, col2 = st.columns([2, 1])
                         
-                        if figure.get('context'):
-                            with st.expander("Show Context"):
-                                st.markdown(figure['context'])
+                        with col1:
+                            # Display figure
+                            image = Image.open(figure['path'])
+                            st.image(image, use_column_width=True)
+                            
+                        with col2:
+                            # Display analysis
+                            st.markdown("**Analysis**")
+                            if figure.get('analysis', {}).get('understanding_role'):
+                                st.markdown(figure['analysis']['understanding_role'])
                                 
-                except Exception as e:
-                    st.error(f"Error displaying figure {figure['path']}: {str(e)}")
+                            if figure.get('context'):
+                                with st.expander("Show Context"):
+                                    st.markdown(figure['context'])
+                                    
+                    except Exception as e:
+                        print(f"Error displaying figure {figure['path']}: {e}")
+                        continue
+                        
+        else:
+            # Display regular section text
+            st.markdown(section)
+
+
+
+
 
 def process_paper_pipeline(pdf_file, session_manager):
     try:
@@ -123,7 +258,7 @@ def process_paper_pipeline(pdf_file, session_manager):
         st.write("### Step 2: Vision Analysis")
         vision_output = analyze_paper_media(
             str(ocr_path),
-            "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"
+            "Your api key here"
         )
         if not vision_output:
             st.error("Vision analysis failed!")
@@ -186,6 +321,7 @@ def main():
     2. Analyze visual content (Vision)
     3. Process and plan synthesis (Processing)
     4. Generate final synthesis (Synthesis)
+    5. Generate knowledge graph (Graph Analysis)
     """)
 
     session_manager = SessionManager()
@@ -209,7 +345,7 @@ def main():
                 # Display results
                 st.markdown("### Analysis Results")
                 
-                tabs = st.tabs(["Synthesis with Figures", "Generated Files", "Raw Results"])
+                tabs = st.tabs(["Synthesis with Figures", "Generated Files", "Raw Results", "Knowledge Graph"])
                 
                 with tabs[0]:
                     synthesis_path = session_manager.get_path("synthesis.md")
@@ -228,5 +364,13 @@ def main():
                     with open(session_manager.get_path("process_results.json"), 'r') as f:
                         st.json(json.load(f))
 
+                with tabs[3]:
+                    st.markdown("#### Knowledge Graph Analysis")
+                    with open(session_manager.get_path("vision_results.json"), 'r') as f:
+                        vision_results = json.load(f)
+                        text = " ".join(page.get("text", "") for page in vision_results.get("pages", []))
+                        paper_title = vision_results.get("metadata", {}).get("title", "Research Paper")
+                    
+                    process_and_display_graph(text, paper_title, str(session_manager.current_session))
 if __name__ == "__main__":
     main()

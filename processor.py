@@ -9,7 +9,7 @@ class PaperProcessor:
         """Initialize processor with API key."""
         self.client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key=api_key or "YOUR API KEY HERE"
+            api_key=api_key or "Your api key here"
         )
 
     def _create_llm_analysis_prompt(self, media_type: str, description: str, context: str) -> str:
@@ -81,7 +81,7 @@ Return ONLY a JSON object with this exact structure:
 }}'''
 
     def _call_llm(self, prompt: str, temperature: float = 0.2, max_tokens: int = 1024) -> Optional[Dict]:
-        """Make LLM API call with error handling."""
+        """Make LLM API call with enhanced error handling and JSON parsing."""
         try:
             print("Sending request to LLM...")
             response = self.client.chat.completions.create(
@@ -101,29 +101,60 @@ Return ONLY a JSON object with this exact structure:
             print(content)
             print("\nAttempting to parse JSON...")
             
-            # Try to clean the response if it's wrapped in markdown code blocks
-            if content.startswith("```") and content.endswith("```"):
-                content = content.strip("```")
-                if content.startswith("json"):
-                    content = content[4:].strip()
-            
+            # First attempt: direct JSON parsing
             try:
                 return json.loads(content)
-            except json.JSONDecodeError:
-                # Try to find JSON-like structure in the response
-                import re
-                json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            except json.JSONDecodeError as e:
+                print(f"Initial JSON parsing failed: {str(e)}")
+                
+            # Second attempt: clean markdown code blocks
+            if "```" in content:
+                try:
+                    # Extract content between code blocks
+                    content = content.split("```")[1]  # Get content after first ```
+                    if content.startswith("json"):
+                        content = content[4:].strip()  # Remove 'json' marker
+                    return json.loads(content)
+                except (json.JSONDecodeError, IndexError) as e:
+                    print(f"Markdown cleaning attempt failed: {str(e)}")
+            
+            # Third attempt: find JSON-like structure with regex
+            import re
+            try:
+                # Look for content between curly braces, including nested ones
+                pattern = r'\{(?:[^{}]|(?R))*\}'
+                json_match = re.search(pattern, content, re.DOTALL)
                 if json_match:
-                    return json.loads(json_match.group())
-                else:
-                    print("Could not find valid JSON in response")
-                    return None
+                    possible_json = json_match.group()
+                    try:
+                        return json.loads(possible_json)
+                    except json.JSONDecodeError:
+                        print("Found JSON-like structure but parsing failed")
+            except Exception as e:
+                print(f"Regex extraction attempt failed: {str(e)}")
+                
+            # Fourth attempt: aggressive cleaning
+            try:
+                # Replace common formatting issues
+                cleaned = content.replace("'", '"')  # Replace single quotes with double quotes
+                cleaned = re.sub(r'(\w+):', r'"\1":', cleaned)  # Add quotes to keys
+                cleaned = re.sub(r',\s*}', '}', cleaned)  # Remove trailing commas
+                cleaned = re.sub(r',\s*]', ']', cleaned)  # Remove trailing commas in arrays
+                
+                # Find and parse the first JSON-like structure
+                match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+                if match:
+                    return json.loads(match.group())
+            except Exception as e:
+                print(f"Aggressive cleaning attempt failed: {str(e)}")
+            
+            print("All JSON parsing attempts failed")
+            return None
             
         except Exception as e:
             print(f"LLM API error: {str(e)}")
             print(f"Full error details: {type(e).__name__}")
             return None
-
     def analyze_media_item(self, item: Dict) -> Optional[Dict]:
         """Analyze a single media item."""
         try:

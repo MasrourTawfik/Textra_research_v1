@@ -8,7 +8,7 @@ import re
 class VisionAnalyzer:
     def __init__(self, api_key):
         """Initialize the vision analyzer with API key"""
-        self.api_key = api_key
+        self.api_key = "Your api key here"
         self.invoke_url = "https://integrate.api.nvidia.com/v1/chat/completions"
         self.headers = {
             "Authorization": f"Bearer {api_key}",
@@ -220,7 +220,7 @@ def analyze_paper_media(results_path, api_key):
 
 if __name__ == "__main__":
     # Example usage
-    API_KEY = "YOUR API KEY HERE"
+    API_KEY = "Your api key here"
     results_path = "results/results.json"
     
     results = analyze_paper_media(results_path, API_KEY)

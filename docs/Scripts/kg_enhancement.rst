@@ -8,7 +8,7 @@ View the complete implementation in Google Colab: Open Notebook `Knowledge Graph
 
 
 Enhancement Strategy
---------------------
+---------------------
 .. figure:: ../Images/enhanced_kg.png
     :align: center
     :alt: Knowledge Graph Enhancement Flow

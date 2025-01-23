@@ -23,6 +23,7 @@ Welcome to Textra-AI-Research's documentation!
    docs/Scripts/kg_base.rst
    docs/Scripts/kg_enhancement.rst
    docs/Scripts/navigating the graph.rst
+   docs/Scripts/synthesis.rst
 
 
    
