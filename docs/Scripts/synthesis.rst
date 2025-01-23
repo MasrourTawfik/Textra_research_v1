@@ -41,7 +41,9 @@ The vision module analyzes extracted visual elements:
 * Outputs: Enhanced JSON with visual element descriptions
 
 API Dependencies:
+
 * NVIDIA AI API access
+
 * Base URL: https://integrate.api.nvidia.com/v1
 
 
@@ -152,6 +154,7 @@ This interface provides:
    
    Paper synthesis and entity extraction view
 
+
 .. figure:: ../Images/kg3.png
    :width: 600px
    :align: center
@@ -160,13 +163,16 @@ This interface provides:
   RL Paper to knowledge graph visualization 
 
 the graph can be downloaded, as png and as json (entities.json & relationships.json)
+
+
 Comprehensive Analysis Interface (main.py)
-''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''
 .. code-block:: bash
 
     streamlit run main.py
 
 This interface provides:
+
     * Detailed, comprehensive synthesis
     * Step-by-step pipeline visualization
     * Full OCR and vision analysis results
@@ -182,12 +188,14 @@ This interface provides:
    
    Initial upload screen of the main interface
 
+
 .. figure:: ../Images/syn2.png
    :width: 600px
    :align: center
    :alt: App Interface Synthesis View
    
    Different tabs available in the interface
+
 
 .. figure:: ../Images/syn5.png
    :width: 600px
@@ -196,12 +204,14 @@ This interface provides:
    
   Raw results view
 
+
 .. figure:: ../Images/kg6.png
    :width: 600px
    :align: center
    :alt: App Interface Knowledge Graph
    
   knowledge graph visualization and download
+
 
 Customization
 --------------
