@@ -154,8 +154,8 @@ This interface provides:
    Paper synthesis and entity extraction view
 
 
+
 .. figure:: ../Images/kg3.png
-   :width: 600px
    :align: center
    :alt: App Interface Knowledge Graph
    
@@ -189,6 +189,8 @@ This interface provides:
    Initial upload screen of the main interface
 
 
+
+
 .. figure:: ../Images/syn2.png
    :width: 600px
    :align: center
@@ -197,12 +199,18 @@ This interface provides:
    Different tabs available in the interface
 
 
+
+
+
 .. figure:: ../Images/syn5.png
    :width: 600px
    :align: center
    :alt: App Interface Knowledge Graph
    
   Raw results view
+
+
+
 
 
 .. figure:: ../Images/kg6.png
