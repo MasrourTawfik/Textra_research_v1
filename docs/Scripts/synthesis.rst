@@ -155,7 +155,7 @@ This interface provides:
 
 
 
-.. figure:: ../Images/kg3.png
+.. figure:: _Images/kg3.png
    :align: center
    :alt: App Interface Knowledge Graph
    
