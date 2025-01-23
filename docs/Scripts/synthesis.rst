@@ -155,11 +155,12 @@ This interface provides:
 
 
 
-.. figure:: _Images/kg3.png
+.. figure:: ../Images/kg3.png
    :align: center
    :alt: App Interface Knowledge Graph
    
-  RL Paper to knowledge graph visualization 
+   RL Paper to knowledge graph visualization 
+
 
 the graph can be downloaded, as png and as json (entities.json & relationships.json)
 
@@ -207,7 +208,7 @@ This interface provides:
    :align: center
    :alt: App Interface Knowledge Graph
    
-  Raw results view
+   Raw results view
 
 
 
@@ -218,7 +219,7 @@ This interface provides:
    :align: center
    :alt: App Interface Knowledge Graph
    
-  knowledge graph visualization and download
+   knowledge graph visualization and download
 
 
 Customization
