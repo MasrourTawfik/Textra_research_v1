@@ -43,7 +43,6 @@ The vision module analyzes extracted visual elements:
 API Dependencies:
 
 * NVIDIA AI API access
-
 * Base URL: https://integrate.api.nvidia.com/v1
 
 
@@ -100,10 +99,10 @@ File Formats
 
 
 Deployment
-----------
+-----------
 
 Dependencies
-~~~~~~~~~~~
+~~~~~~~~~~~~~
 .. code-block:: bash
 
     pip install -r r.txt
@@ -116,6 +115,7 @@ Required external software:
 API Configuration
 ~~~~~~~~~~~~~~~~~~
 Set the following environment variables:
+
     * NVIDIA_API_KEY
     * Other API keys as needed
 
@@ -123,11 +123,10 @@ Usage
 ------
 
 Web Interface
-~~~~~~~~~~~~
-Two different web interfaces are available for different use cases:
+~~~~~~~~~~~~~~
 
 Quick Analysis Interface (app.py)
-'''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
     streamlit run app.py
@@ -166,7 +165,8 @@ the graph can be downloaded, as png and as json (entities.json & relationships.j
 
 
 Comprehensive Analysis Interface (main.py)
-''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. code-block:: bash
 
     streamlit run main.py
